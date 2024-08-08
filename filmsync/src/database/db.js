@@ -1,28 +1,23 @@
-const sql = require("mssql/msnodesqlv8");
-const dotenv = require("dotenv");
+const { Sequelize } = require("sequelize");
+const path = require("path");
 
-dotenv.config();
+const sequelize = new Sequelize({
+  dialect: "sqlite",
+  storage: path.join(__dirname, "../../filmsync.sqlite"),
+  logging: console.log,
+});
 
-const config = {
-  server: process.env.DB_SERVER,
-  database: process.env.DB_DATABASE,
-  options: {
-    trustedConnection: process.env.DB_TRUSTED_CONNECTION === "true",
-    enableArithAbort: true,
-    trustServerCertificate: true,
-  },
-  driver: "msnodesqlv8",
+const testConnection = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log(
+      "Connection to the database has been established successfully."
+    );
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
 };
 
-const poolPromise = new sql.ConnectionPool(config)
-  .connect()
-  .then((pool) => {
-    console.log("Connected to MSSQL");
-    return pool;
-  })
-  .catch((err) => console.log("Database Connection Failed! Bad Config: ", err));
+testConnection();
 
-module.exports = {
-  sql,
-  poolPromise,
-};
+module.exports = sequelize;
